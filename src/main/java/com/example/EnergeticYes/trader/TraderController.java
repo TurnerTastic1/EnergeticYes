@@ -24,11 +24,6 @@ public class TraderController {
         return traderService.getTraders();
     }
 
-    @GetMapping(path = "{traderId}")
-    public Trader getTraderById(@PathVariable("traderId") Long traderId) {
-        return traderService.getTraderById(traderId);
-    }
-
     @PostMapping()
     public void registerNewTrader(@RequestBody Trader trader) {
         traderService.addNewTrader(trader);

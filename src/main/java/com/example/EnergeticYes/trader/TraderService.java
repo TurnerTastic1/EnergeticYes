@@ -18,10 +18,6 @@ public class TraderService {
         return traderRepository.findAll();
     };
 
-    public Trader getTraderById(Long traderId) {
-        return traderRepository.findById(traderId).orElseThrow(() -> new IllegalStateException("Trader with id " + traderId + " does not exist."));
-    }
-
     public void addNewTrader(Trader trader) {
         Optional<Trader> traderOptional = traderRepository.findTraderByEmail(trader.getEmail());
         if (traderOptional.isPresent()) {
