@@ -1,4 +1,4 @@
-package com.example.EnergeticYes;
+package com.example.EnergeticYes.config;
 
 import com.example.EnergeticYes.strategy.Strategy;
 import com.example.EnergeticYes.strategy.StrategyRepository;
