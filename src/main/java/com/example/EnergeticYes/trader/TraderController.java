@@ -22,7 +22,7 @@ public class TraderController {
     }
 
     @GetMapping()
-    public List<Trader> getTraders() {
+    public ResponseEntity<Map<String, Object>> getTraders() {
         return traderService.getTraders();
     }
 
@@ -37,11 +37,11 @@ public class TraderController {
     }
 
     @PutMapping(path = "{traderId}")
-    public void updateTrader(
+    public ResponseEntity<Map<String, Object>> updateTrader(
     		@PathVariable("traderId") Long traderId,
     		@RequestBody(required = false) Trader trader ) {
 
-    	traderService.updateTrader(traderId, trader.getName(), trader.getEmail());
+    	return traderService.updateTrader(traderId, trader.getName(), trader.getEmail());
     }
 
 }

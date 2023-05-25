@@ -19,9 +19,10 @@ public class TraderService {
         this.traderRepository = traderRepository;
     }
 
-    public List<Trader> getTraders() {
+    public ResponseEntity<Map<String, Object>> getTraders() {
         try {
-            return traderRepository.findAll();
+            List<Trader> traders = traderRepository.findAll();
+            return ResponseEntity.ok(Map.of("message", "Traders fetched successfully", "traders", traders));
         } catch (Exception e) {
             throw new CustomApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to fetch traders");
         }
@@ -59,29 +60,57 @@ public class TraderService {
     }
 
     public ResponseEntity<Map<String, Object>> deleteTrader(Long traderId) {
+        if (traderId == null) {
+            String errorMessage = "Trader id is required.";
+        	throw new CustomApplicationException(HttpStatus.BAD_REQUEST, errorMessage);
+        }
         boolean exists = traderRepository.existsById(traderId);
         if (!exists) {
             String errorMessage = "Trader with id " + traderId + " does not exist.";
         	throw new CustomApplicationException(HttpStatus.BAD_REQUEST, errorMessage);
         }
-        traderRepository.deleteById(traderId);
+
+        try {
+            traderRepository.deleteById(traderId);
+        } catch (Exception e) {
+            String errorMessage = "Unable to delete trader with id " + traderId;
+            List<String> errors = new ArrayList<>();
+            errors.add(e.toString());
+        	throw new CustomApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage, errors);
+        }
+
         return ResponseEntity.ok(Map.of("message", "Trader deleted successfully"));
     }
 
-    public void updateTrader(Long traderId, String name, String email) {
+    public ResponseEntity<Map<String, Object>> updateTrader(Long traderId, String name, String email) {
+        if (traderId == null) {
+            throw new CustomApplicationException(HttpStatus.BAD_REQUEST, "Trader id is required.");
+        }
+
     	Trader trader = traderRepository.findById(traderId)
-    			.orElseThrow(() -> new IllegalStateException(
-    					"Trader with id " + traderId + " does not exist."));
+    			.orElseThrow(() -> new CustomApplicationException(
+                        HttpStatus.BAD_REQUEST, "Trader with id " + traderId + " does not exist."));
+
     	if (name != null && name.length() > 0 && !trader.getName().equals(name)) {
     		trader.setName(name);
     	}
     	else if (email != null && email.length() > 0 && !trader.getEmail().equals(email)) {
     		Optional<Trader> traderOptional = traderRepository.findTraderByEmail(email);
     		if (traderOptional.isPresent()) {
-    			throw new IllegalStateException("Email already in use");
+    			throw new CustomApplicationException(HttpStatus.BAD_REQUEST, "Email already in use");
     		}
     		trader.setEmail(email);
-    	}
-    	traderRepository.save(trader);
+    	} else {
+            throw new CustomApplicationException(HttpStatus.BAD_REQUEST, "No fields to update");
+        }
+
+        try {
+            traderRepository.save(trader);
+            return ResponseEntity.ok(Map.of("message", "Trader updated successfully"));
+        } catch (Exception e) {
+            List<String> errors = new ArrayList<>();
+            errors.add(e.toString());
+            throw new CustomApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to update trader", errors);
+        }
     }
 }
