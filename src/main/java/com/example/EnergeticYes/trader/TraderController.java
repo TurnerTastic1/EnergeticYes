@@ -1,8 +1,10 @@
 package com.example.EnergeticYes.trader;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(path = "trader/")
@@ -25,13 +27,13 @@ public class TraderController {
     }
 
     @PostMapping()
-    public void registerNewTrader(@RequestBody Trader trader) {
-        traderService.addNewTrader(trader);
+    public ResponseEntity<Map<String, Object>> registerNewTrader(@RequestBody Trader trader) {
+        return traderService.addNewTrader(trader);
     }
 
     @DeleteMapping(path = "{traderId}")
-    public void deleteTrader(@PathVariable("traderId") Long traderId) {
-    	traderService.deleteTrader(traderId);
+    public ResponseEntity<Map<String, Object>> deleteTrader(@PathVariable("traderId") Long traderId) {
+    	return traderService.deleteTrader(traderId);
     }
 
     @PutMapping(path = "{traderId}")

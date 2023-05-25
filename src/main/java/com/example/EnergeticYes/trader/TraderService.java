@@ -1,8 +1,13 @@
 package com.example.EnergeticYes.trader;
 
+import com.example.EnergeticYes.exception.CustomApplicationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -15,23 +20,52 @@ public class TraderService {
     }
 
     public List<Trader> getTraders() {
-        return traderRepository.findAll();
+        try {
+            return traderRepository.findAll();
+        } catch (Exception e) {
+            throw new CustomApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to fetch traders");
+        }
     };
 
-    public void addNewTrader(Trader trader) {
+    public ResponseEntity<Map<String, Object>> addNewTrader(Trader trader) {
+        System.out.println(trader);
+        List<String> errors = new ArrayList<>();
+        if (trader.getName() == null || trader.getName().isEmpty()) {
+            errors.add("Name is required");
+        }
+
+        if (trader.getEmail() == null || trader.getEmail().isEmpty()) {
+            errors.add("Email is required");
+        }
+
         Optional<Trader> traderOptional = traderRepository.findTraderByEmail(trader.getEmail());
         if (traderOptional.isPresent()) {
-            throw new IllegalStateException("Email already in use");
+            errors.add("Email already exists");
         }
-        traderRepository.save(trader);
+
+        if (!errors.isEmpty()) {
+            throw new CustomApplicationException(HttpStatus.BAD_REQUEST, "Invalid request", errors);
+        }
+
+        try {
+            traderRepository.save(trader);
+        } catch (Exception e) {
+            errors = new ArrayList<>();
+            errors.add(e.toString());
+            throw new CustomApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to save trader", errors);
+        }
+
+        return ResponseEntity.ok(Map.of("message", "Trader added successfully"));
     }
 
-    public void deleteTrader(Long traderId) {
+    public ResponseEntity<Map<String, Object>> deleteTrader(Long traderId) {
         boolean exists = traderRepository.existsById(traderId);
         if (!exists) {
-        	throw new IllegalStateException("Trader with id " + traderId + " does not exist.");
+            String errorMessage = "Trader with id " + traderId + " does not exist.";
+        	throw new CustomApplicationException(HttpStatus.BAD_REQUEST, errorMessage);
         }
         traderRepository.deleteById(traderId);
+        return ResponseEntity.ok(Map.of("message", "Trader deleted successfully"));
     }
 
     public void updateTrader(Long traderId, String name, String email) {
