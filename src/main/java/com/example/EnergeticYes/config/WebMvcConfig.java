@@ -16,4 +16,3 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 }
 
-// ** Ruled unnecessary by usage of SecurityConfig.java **
